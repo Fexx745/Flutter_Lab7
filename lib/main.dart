@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 void main() {
   runApp(const MyApp());
 }
+
+final _listviewScrollController = ScrollController();
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -43,8 +47,31 @@ class _MyHomePageState extends State<MyHomePage> {
         _items.add('$id $name');
         _studentIdController.clear();
         _studentNameController.clear();
+        _listviewScrollController.animateTo(
+            _listviewScrollController.position.maxScrollExtent + 30,
+            curve: Curves.easeOut,
+            duration: const Duration(milliseconds: 500));
+        saveFile();
       }
     });
+  }
+
+  Future<String> getFilePath() async {
+    Directory appDocumentsDirectory = await getApplicationDocumentsDirectory();
+    String appDocumentsPath = appDocumentsDirectory.path;
+    String filePath = '$appDocumentsPath/demoText.txt';
+
+    return filePath;
+  }
+
+  void saveFile() async {
+    File file = File(await getFilePath());
+
+    // เขียนข้อมูลรายการนักศึกษาลงในไฟล์
+    String data = _items.join('\n');
+    await file.writeAsString(data);
+
+    print('File saved successfully at ${file.path}');
   }
 
   void _removeItem(int index) {
@@ -64,6 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
         children: <Widget>[
           Expanded(
             child: ListView.separated(
+              controller: _listviewScrollController,
               itemCount: _items.length,
               itemBuilder: (BuildContext context, int index) {
                 return ListTile(
@@ -72,7 +100,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     style: TextStyle(fontSize: 14),
                   ),
                   trailing: IconButton(
-                    icon: const Icon(Icons.cancel),
+                    icon: const Icon(
+                      Icons.cancel,
+                      size: 20,
+                    ),
                     onPressed: () => _removeItem(index),
                     color: Colors.black,
                   ),
@@ -87,7 +118,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           Container(
-            height: 200,
             padding: const EdgeInsets.all(20),
             margin: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -99,13 +129,18 @@ class _MyHomePageState extends State<MyHomePage> {
               children: <Widget>[
                 TextField(
                   controller: _studentIdController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
                     labelText: 'รหัสนักศึกษา',
                   ),
                 ),
+                SizedBox(
+                  height: 20,
+                ),
                 TextField(
                   controller: _studentNameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
                     labelText: 'ชื่อ นามสกุล',
                   ),
                 ),
